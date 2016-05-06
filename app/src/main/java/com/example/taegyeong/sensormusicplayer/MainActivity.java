@@ -1,17 +1,21 @@
 package com.example.taegyeong.sensormusicplayer;
 
+import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Typeface;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.os.Handler;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import android.view.View;
+import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,13 +26,19 @@ public class MainActivity extends AppCompatActivity {
 
     private final int duration = 3; // seconds
     private final int sampleRate = 8000;
-    private final int numSamples = duration * sampleRate;
+    private final int numSamples = sampleRate*duration;
     private final double sample[] = new double[numSamples];
-    private final double freqOfTone = 440; // hz
-
     private final byte generatedSnd[] = new byte[2 * numSamples];
+    private int lastFreq=0;
 
-    Handler handler = new Handler();
+    private boolean running;
+    private boolean generating;
+
+    private AudioTrack audioTrack;
+
+    private SensorManager mSensorManager;
+    private SensorEventListener proximityListener;
+    private SensorEventListener rotationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,35 +50,89 @@ public class MainActivity extends AppCompatActivity {
 //        branRegular = Typeface.createFromAsset(getAssets(), "brandon_med.otf");
 //        branLight = Typeface.createFromAsset(getAssets(), "brandon_reg.otf");
 
+        Button b1 = (Button) findViewById(R.id.button1);
+        assert b1!=null;
+        b1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(running)
+                    audioTrack.pause();
+                else
+                    audioTrack.play();
+                running = !running;
+            }
+        });
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        proximityListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                float proximityDistance = event.values[0];
+                if (proximityDistance > 0) {
+//                    if (!running) {
+//                        running = true;
+//                        audioTrack.play();
+//                    }
+                    audioTrack.setVolume(10);
+                } else {
+//                    if (running) {
+//                        running = false;
+//                        audioTrack.pause();
+//                    }
+                    audioTrack.setVolume(0);
+                }
+            }
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+        };
+        rotationListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                int freq = (int)(event.values[0]*260 + 440);
+                if(freq != lastFreq){
+                    lastFreq = freq;
+                    SoundGenTask task = new SoundGenTask();
+                    task.execute(freq);
+                }
+            }
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+        };
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        // Use a new tread as this can take a while
-        final Thread thread = new Thread(new Runnable() {
-            public void run() {
-                genTone();
-                handler.post(new Runnable() {
-
-                    public void run() {
-                        playSound();
-                    }
-                });
-            }
-        });
-        thread.start();
+        SoundGenTask task = new SoundGenTask();
+        task.execute(440);
     }
 
-    void genTone(){
-        // fill out the array
+    @Override
+    protected void onDestroy(){
+        mSensorManager.unregisterListener(proximityListener);
+        mSensorManager.unregisterListener(rotationListener);
+        if(audioTrack != null) {
+            audioTrack.pause();
+            audioTrack.release();
+        }
+        super.onDestroy();
+    }
+
+    private void registerSensor(int samplePeriod){
+        Sensor proximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        Sensor rotationSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
+        mSensorManager.registerListener(proximityListener, proximitySensor,
+                SensorManager.SENSOR_DELAY_NORMAL, samplePeriod);
+        mSensorManager.registerListener(rotationListener, rotationSensor,
+                SensorManager.SENSOR_DELAY_NORMAL, samplePeriod);
+    }
+
+    private void genTone(double freqOfTone){
+        Log.d("debugging","freq: "+freqOfTone);
+
         for (int i = 0; i < numSamples; ++i) {
             sample[i] = Math.sin(2 * Math.PI * i / (sampleRate/freqOfTone));
         }
-
-        // convert to 16 bit pcm sound array
-        // assumes the sample buffer is normalised.
         int idx = 0;
         for (final double dVal : sample) {
             // scale to maximum amplitude
@@ -80,12 +144,38 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void playSound(){
-        final AudioTrack audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
+    private void playSound(){
+        AudioTrack newAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
                 sampleRate, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, generatedSnd.length,
                 AudioTrack.MODE_STATIC);
-        audioTrack.write(generatedSnd, 0, generatedSnd.length);
-        audioTrack.play();
+        newAudioTrack.write(generatedSnd, 0, generatedSnd.length);
+        newAudioTrack.setLoopPoints(0, generatedSnd.length/2, -1);
+        running = true;
+        newAudioTrack.play();
+
+        if(audioTrack != null) {
+            audioTrack.pause();
+            audioTrack.release();
+            audioTrack = null;
+        }
+        audioTrack = newAudioTrack;
+        registerSensor(1000);
+    }
+
+    public class SoundGenTask extends AsyncTask<Integer, Void, Void> {
+        @Override
+        public Void doInBackground(Integer... params) {
+            mSensorManager.unregisterListener(proximityListener);
+            mSensorManager.unregisterListener(rotationListener);
+            genTone(params[0]);
+            return null;
+        }
+
+        @Override
+        public void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            playSound();
+        }
     }
 }
