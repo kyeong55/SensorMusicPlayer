@@ -16,6 +16,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -45,11 +48,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        branBlack = Typeface.createFromAsset(getAssets(), "brandon_blk.otf");
-//        branBold = Typeface.createFromAsset(getAssets(), "brandon_bld.otf");
-//        branRegular = Typeface.createFromAsset(getAssets(), "brandon_med.otf");
-//        branLight = Typeface.createFromAsset(getAssets(), "brandon_reg.otf");
+        branBlack = Typeface.createFromAsset(getAssets(), "brandon_blk.otf");
+        branBold = Typeface.createFromAsset(getAssets(), "brandon_bld.otf");
+        branRegular = Typeface.createFromAsset(getAssets(), "brandon_med.otf");
+        branLight = Typeface.createFromAsset(getAssets(), "brandon_reg.otf");
 
+        TextView titleBar = (TextView) findViewById(R.id.title_bar);
+        TextView proximityLabel = (TextView) findViewById(R.id.proximity_subtitle);
+        TextView rotationLabel = (TextView) findViewById(R.id.roatation_subtitle);
+        TextView frequencyLabel = (TextView) findViewById(R.id.frequency_subtitle);
+        final TextView proximity = (TextView) findViewById(R.id.proximity);
+        final TextView rotation = (TextView) findViewById(R.id.rotation);
+        final TextView frequency = (TextView) findViewById(R.id.frequency);
+
+        assert titleBar != null;
+        assert proximityLabel != null;
+        assert rotationLabel != null;
+        assert frequencyLabel != null;
+        assert proximity != null;
+        assert rotation != null;
+        assert frequency != null;
+
+        titleBar.setTypeface(branBlack);
+        proximityLabel.setTypeface(branRegular);
+        rotationLabel.setTypeface(branRegular);
+        frequencyLabel.setTypeface(branRegular);
+        proximity.setTypeface(branBold);
+        rotation.setTypeface(branBold);
+        frequency.setTypeface(branBold);
+
+        /*
         Button b1 = (Button) findViewById(R.id.button1);
         assert b1!=null;
         b1.setOnClickListener(new View.OnClickListener() {
@@ -62,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 running = !running;
             }
         });
+        */
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         proximityListener = new SensorEventListener() {
@@ -74,12 +103,14 @@ public class MainActivity extends AppCompatActivity {
 //                        audioTrack.play();
 //                    }
                     audioTrack.setVolume(10);
+                    proximity.setText("Far: " + proximityDistance + " cm");
                 } else {
 //                    if (running) {
 //                        running = false;
 //                        audioTrack.pause();
 //                    }
                     audioTrack.setVolume(0);
+                    proximity.setText("Near: " + proximityDistance + " cm");
                 }
             }
             @Override
@@ -89,7 +120,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 int freq = (int)(event.values[0]*260 + 440);
+                rotation.setText(printRotationDegree(event.values[0]) + "°");
                 if(freq != lastFreq){
+                    frequency.setText(freq + " Hz");
                     lastFreq = freq;
                     SoundGenTask task = new SoundGenTask();
                     task.execute(freq);
@@ -116,6 +149,12 @@ public class MainActivity extends AppCompatActivity {
             audioTrack.release();
         }
         super.onDestroy();
+    }
+
+    private float printRotationDegree(float degree){
+        int size = 10000;
+        int cutter = (int)(degree * size);
+        return ((float)cutter)/size;
     }
 
     private void registerSensor(int samplePeriod){

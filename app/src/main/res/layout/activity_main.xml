@@ -3,20 +3,108 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.taegyeong.sensormusicplayer.MainActivity"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/colorTheme1">
 
     <TextView
+        android:id="@+id/title_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:text="@string/app_name"
+        android:textColor="@color/colorTheme1"
+        android:textSize="28sp"
+        android:gravity="center_horizontal"
+        android:elevation="4dp"
+        android:background="@color/colorTheme3"/>
+    <TextView
+        android:id="@+id/proximity_subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        android:elevation="2dp"
+        android:background="@drawable/subtitle_background"
+        android:text="Proximity Sensor"
+        android:textSize="24sp"
+        android:textColor="@color/colorWhite"/>
+    <TextView
+        android:id="@+id/proximity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        android:gravity="end"
+        android:text="5 mm"
+        android:textColor="@color/colorTheme2"
+        android:textSize="60sp"/>
 
+    <TextView
+        android:id="@+id/roatation_subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        android:elevation="2dp"
+        android:background="@drawable/subtitle_background"
+        android:text="Rotation Sensor"
+        android:textSize="24sp"
+        android:textColor="@color/colorWhite"/>
+    <TextView
+        android:id="@+id/rotation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="0dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        android:gravity="end"
+        android:text="42.3 lx"
+        android:textColor="@color/colorTheme2"
+        android:textSize="60sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp"
+        android:layout_marginLeft="32dp"
+        android:layout_marginRight="32dp"
+        android:elevation="8dp"
+        android:background="@color/colorWhite"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/frequency_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:background="@color/colorTheme2"
+            android:gravity="center_horizontal"
+            android:text="Modulated Frequency"
+            android:textSize="24sp"
+            android:textColor="@color/colorWhite"/>
+        <TextView
+            android:id="@+id/frequency"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="440 Hz"
+            android:textSize="60sp"
+            android:textColor="@color/colorTheme1"/>
+    </LinearLayout>
+<!--
     <Button
         android:id="@+id/button1"
         android:layout_width="match_parent"
         android:layout_height="50dp" />
+        -->
 </LinearLayout>

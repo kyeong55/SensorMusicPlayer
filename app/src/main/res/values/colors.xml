@@ -4,11 +4,11 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="colorTheme1">#FEE78A</color>
-    <color name="colorTheme2">#FDC188</color>
-    <color name="colorTheme3">#FDA286</color>
-    <color name="colorTheme4">#FB607A</color>
-    <color name="colorTheme5">#FC297D</color>
+    <color name="colorTheme1">#494A5E</color>
+    <color name="colorTheme2">#A0A1AD</color>
+    <color name="colorTheme3">#F1F3F4</color>
+    <color name="colorTheme4">#EC8C79</color>
+    <color name="colorTheme5">#6D7082</color>
 
     <color name="colorText">#797979</color>
     <color name="colorBlack">#000000</color>
