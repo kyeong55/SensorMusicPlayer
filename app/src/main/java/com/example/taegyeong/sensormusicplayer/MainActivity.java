@@ -34,14 +34,13 @@ public class MainActivity extends AppCompatActivity {
     private final byte generatedSnd[] = new byte[2 * numSamples];
     private int lastFreq=0;
 
-    private boolean running;
-    private boolean generating;
-
     private AudioTrack audioTrack;
 
     private SensorManager mSensorManager;
     private SensorEventListener proximityListener;
     private SensorEventListener rotationListener;
+
+    private int volume;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,38 +76,17 @@ public class MainActivity extends AppCompatActivity {
         rotation.setTypeface(branBold);
         frequency.setTypeface(branBold);
 
-        /*
-        Button b1 = (Button) findViewById(R.id.button1);
-        assert b1!=null;
-        b1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(running)
-                    audioTrack.pause();
-                else
-                    audioTrack.play();
-                running = !running;
-            }
-        });
-        */
-
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         proximityListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 float proximityDistance = event.values[0];
                 if (proximityDistance > 0) {
-//                    if (!running) {
-//                        running = true;
-//                        audioTrack.play();
-//                    }
+                    volume = 10;
                     audioTrack.setVolume(10);
                     proximity.setText("Far: " + proximityDistance + " cm");
                 } else {
-//                    if (running) {
-//                        running = false;
-//                        audioTrack.pause();
-//                    }
+                    volume = 0;
                     audioTrack.setVolume(0);
                     proximity.setText("Near: " + proximityDistance + " cm");
                 }
@@ -137,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         SoundGenTask task = new SoundGenTask();
+        volume = 10;
         task.execute(440);
     }
 
@@ -190,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                 AudioTrack.MODE_STATIC);
         newAudioTrack.write(generatedSnd, 0, generatedSnd.length);
         newAudioTrack.setLoopPoints(0, generatedSnd.length/2, -1);
-        running = true;
+        newAudioTrack.setVolume(volume);
         newAudioTrack.play();
 
         if(audioTrack != null) {
