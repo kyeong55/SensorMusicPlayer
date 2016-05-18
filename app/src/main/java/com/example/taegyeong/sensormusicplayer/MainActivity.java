@@ -97,8 +97,8 @@ public class MainActivity extends AppCompatActivity {
         rotationListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent event) {
-                int freq = (int)(event.values[0]*260 + 440);
-                rotation.setText(printRotationDegree(event.values[0]) + "°");
+                int freq = (int)(500 - event.values[1]*500/180);
+                rotation.setText(printRotationDegree(event.values[1]) + "°");
                 if(freq != lastFreq){
                     frequency.setText(freq + " Hz");
                     lastFreq = freq;
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void registerSensor(int samplePeriod){
         Sensor proximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-        Sensor rotationSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
+        Sensor rotationSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
         mSensorManager.registerListener(proximityListener, proximitySensor,
                 SensorManager.SENSOR_DELAY_NORMAL, samplePeriod);
         mSensorManager.registerListener(rotationListener, rotationSensor,
@@ -178,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
             audioTrack = null;
         }
         audioTrack = newAudioTrack;
-        registerSensor(1000);
+        registerSensor(100);
     }
 
     public class SoundGenTask extends AsyncTask<Integer, Void, Void> {
@@ -187,13 +187,13 @@ public class MainActivity extends AppCompatActivity {
             mSensorManager.unregisterListener(proximityListener);
             mSensorManager.unregisterListener(rotationListener);
             genTone(params[0]);
+            playSound();
             return null;
         }
 
         @Override
         public void onPostExecute(Void result) {
             super.onPostExecute(result);
-            playSound();
         }
     }
 }
